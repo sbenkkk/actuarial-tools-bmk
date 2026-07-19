@@ -1,0 +1,242 @@
+/* ============================================================
+   Actuarial Tools by BMK — Design System
+   Archivo: styles.css — capa CSS declarativa de marca
+   Autor: BMK · Última actualización: 2026-07-18
+   ------------------------------------------------------------
+   Regla estricta: este archivo NO contiene valores hex literales.
+   Solo consume variables --bmk-* (inyectadas por theme_bmk() desde
+   colors.R) y --bs-* (generadas por Bootstrap vía bslib). Un cambio
+   de color se hace en colors.R y se propaga aquí automáticamente.
+   ============================================================ */
+
+/* --- Base tipográfica y de superficie ------------------------------------ */
+body {
+  background-color: var(--bmk-bg);
+  color: var(--bmk-text);
+  font-family: var(--bmk-font-stack);
+  font-size: var(--bmk-fs-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 { color: var(--bmk-text); }
+
+.text-secondary,
+.form-text,
+label.col-form-label,
+.text-muted { color: var(--bmk-text-secondary) !important; }
+
+a { color: var(--bmk-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* --- Tarjetas (apartado 3.5) --------------------------------------------- */
+.card {
+  background-color: var(--bmk-surface);
+  border: 1px solid var(--bmk-border);
+  border-radius: var(--bmk-radius);
+  box-shadow: var(--bmk-shadow);
+}
+.card-header {
+  background-color: var(--bmk-surface);
+  border-bottom: 1px solid var(--bmk-border);
+  font-size: var(--bmk-fs-section);
+  font-weight: 600;
+  color: var(--bmk-text);
+}
+
+/* --- Botones (apartado 3.5): altura ~38px, hover = oscurecer 8% ---------- */
+.btn {
+  border-radius: var(--bmk-radius);
+  font-weight: 500;
+  min-height: 38px;
+  padding-top: var(--bmk-space-sm);
+  padding-bottom: var(--bmk-space-sm);
+  transition: background-color 0.12s ease-in-out,
+              border-color 0.12s ease-in-out,
+              color 0.12s ease-in-out;
+}
+.btn-primary {
+  background-color: var(--bmk-primary);
+  border-color: var(--bmk-primary);
+  color: var(--bmk-on-primary);
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--bmk-primary-hover);
+  border-color: var(--bmk-primary-hover);
+}
+
+/* Secundario: transparente, borde gris, texto carbón. */
+.btn-secondary,
+.btn-outline-secondary {
+  background-color: transparent;
+  border-color: var(--bmk-border);
+  color: var(--bmk-text);
+}
+.btn-secondary:hover,
+.btn-outline-secondary:hover {
+  background-color: var(--bmk-bg);
+  border-color: var(--bmk-border);
+  color: var(--bmk-text);
+}
+
+/* Destructivo: transparente, borde y texto en rojo apagado. */
+.btn-danger,
+.btn-outline-danger {
+  background-color: transparent;
+  border-color: var(--bmk-error);
+  color: var(--bmk-error);
+}
+.btn-danger:hover,
+.btn-outline-danger:hover {
+  border-color: var(--bmk-error-hover);
+  color: var(--bmk-error-hover);
+}
+
+/* --- Inputs -------------------------------------------------------------- */
+.form-control,
+.form-select {
+  border-color: var(--bmk-border);
+  border-radius: var(--bmk-radius);
+  font-size: var(--bmk-fs-body);
+  min-height: 38px;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--bmk-primary);
+  box-shadow: 0 0 0 0.15rem rgba(11, 61, 145, 0.12);
+}
+.form-label { font-size: var(--bmk-fs-aux); color: var(--bmk-text-secondary); }
+
+/* --- Tablas / DT (apartado 3.5) ------------------------------------------ */
+/* Cabecera con fondo gris de app, sin líneas verticales, horizontales sutiles.
+   Números a la derecha se alinean desde la herramienta con columnDefs.        */
+table.dataTable thead th {
+  background-color: var(--bmk-bg);
+  color: var(--bmk-text);
+  font-weight: 600;
+  font-size: var(--bmk-fs-aux);
+  border-bottom: 1px solid var(--bmk-border);
+}
+table.dataTable tbody td {
+  border-top: 1px solid var(--bmk-border);
+  font-size: var(--bmk-fs-body);
+  color: var(--bmk-text);
+}
+table.dataTable { border: none; }
+.dataTables_wrapper .dataTables_filter input {
+  border: 1px solid var(--bmk-border);
+  border-radius: var(--bmk-radius);
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: var(--bmk-primary) !important;
+  color: var(--bmk-on-primary) !important;
+  border-radius: var(--bmk-radius);
+}
+
+/* ==========================================================================
+   Clases de identidad reutilizadas por los componentes de la Fase 3.
+   Se definen aquí (única ubicación de CSS del proyecto, regla 16). Codifican
+   las especificaciones visuales del apartado 3.5; los componentes R que las
+   consumen se implementan en la Fase 3, no aquí.
+   ========================================================================== */
+
+/* Metric card (apartado 3.5): label gris arriba, número grande, nota abajo. */
+.bmk-metric-card {
+  background-color: var(--bmk-surface);
+  border: 1px solid var(--bmk-border);
+  border-radius: var(--bmk-radius);
+  box-shadow: var(--bmk-shadow);
+  padding: var(--bmk-space-xl);
+  text-align: center;
+}
+.bmk-metric-label {
+  font-size: var(--bmk-fs-aux);
+  color: var(--bmk-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.bmk-metric-value {
+  font-size: var(--bmk-fs-metric);
+  font-weight: 700;
+  color: var(--bmk-primary);
+  font-variant-numeric: tabular-nums;  /* alineación de dígitos, apartado 3.2 */
+  line-height: 1.1;
+  margin: var(--bmk-space-xs) 0;
+}
+.bmk-metric-note { font-size: var(--bmk-fs-aux); color: var(--bmk-text-secondary); }
+
+/* Caja de interpretación (apartado 4.2): bloque explícito y separado. */
+.bmk-interpretation {
+  background-color: var(--bmk-surface);
+  border: 1px solid var(--bmk-border);
+  border-left: 3px solid var(--bmk-primary);
+  border-radius: var(--bmk-radius);
+  padding: var(--bmk-space-xl);
+  font-size: var(--bmk-fs-body);
+  color: var(--bmk-text);
+}
+
+/* Sección de sidebar (apartado 3.5): inputs agrupados bajo un título. */
+.bmk-sidebar-section { margin-bottom: var(--bmk-space-xl); }
+.bmk-sidebar-section > .bmk-sidebar-title {
+  font-size: var(--bmk-fs-aux);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--bmk-text-secondary);
+  margin-bottom: var(--bmk-space-sm);
+}
+
+/* Header y footer (apartado 4): identidad consistente. */
+.bmk-header {
+  background-color: var(--bmk-primary);
+  color: var(--bmk-on-primary);
+  padding: var(--bmk-space-md) var(--bmk-space-xl);
+  font-size: var(--bmk-fs-app-title);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--bmk-space-md);
+}
+.bmk-footer {
+  color: var(--bmk-text-secondary);
+  font-size: var(--bmk-fs-aux);
+  border-top: 1px solid var(--bmk-border);
+  padding: var(--bmk-space-md) var(--bmk-space-xl);
+}
+
+/* Sidebar contenedor: fondo casi blanco, separado por borde, nunca por sombra. */
+.bmk-sidebar {
+  background-color: var(--bmk-sidebar);
+  border-right: 1px solid var(--bmk-border);
+  width: var(--bmk-sidebar-width);
+}
+
+/* ==========================================================================
+   Ajustes de la Fase 3 (autorizados; ver docs/decisions_log.md, 2026-07-18).
+   Clases utilitarias que sustituyen a los estilos inline de los componentes.
+   ========================================================================== */
+
+/* Header: jerarquía marca / separador / nombre de herramienta. */
+.bmk-header-brand { font-weight: 600; }
+.bmk-header-sep   { font-weight: 400; opacity: 0.55; margin: 0 0.15em; }
+.bmk-header-tool  { font-weight: 400; }
+
+/* Caja de interpretación: título. */
+.bmk-interpretation-title {
+  font-weight: 600;
+  margin-bottom: var(--bmk-space-sm);
+}
+
+/* Notificaciones: layout e icono; el color lo fija el estado. */
+.bmk-notification {
+  display: flex;
+  align-items: center;
+  gap: var(--bmk-space-sm);
+}
+.bmk-notification-icon { display: inline-flex; }
+.bmk-notification-info    .bmk-notification-icon { color: var(--bmk-accent); }
+.bmk-notification-warning .bmk-notification-icon { color: var(--bmk-warning); }
+.bmk-notification-error   .bmk-notification-icon { color: var(--bmk-error); }

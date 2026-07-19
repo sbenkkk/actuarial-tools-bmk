@@ -1,0 +1,3 @@
+{
+  "_comment": "Placeholder. El renv.lock real se genera con renv::init()/renv::snapshot() (apartado 14, decisión 5). Único lockfile en la raíz."
+}
