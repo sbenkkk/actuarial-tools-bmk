@@ -1,10 +1,10 @@
 # Actuarial Tools by BMK
 
-Colección de 30-40 herramientas actuariales independientes construidas sobre una
+Colección de herramientas actuariales independientes construidas sobre una
 infraestructura común (**BMK Framework**). Cada herramienta resuelve un único
 problema y se usa en menos de un minuto.
 
-Base futura de **Internal Model Studio**, **ORSA Platform** y **Actuarial Risk Hub**.
+
 
 ## Estructura
 
