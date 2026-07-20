@@ -245,7 +245,24 @@ mod_tool_ui <- function(id) {
       bmk_sidebar_section(
         "Datos",
         mod_data_input_ui(ns("datos")),
-        shiny::selectInput(ns("sev_col"), "Columna de severidad", choices = NULL)
+        shiny::selectInput(ns("sev_col"), "Columna de severidad", choices = NULL),
+        shiny::tags$p(
+          class = "text-secondary",
+          shiny::tags$small(
+            "Formato del CSV: separador coma, decimales con punto, sin celdas vacías. ",
+            "Debe incluir una columna numérica de importes llamada ",
+            shiny::tags$code("loss_amount"), ". Máx. 10 MB / 100.000 filas."
+          )
+        ),
+        mod_export_csv_ui(ns("plantilla"), "Descargar datos de ejemplo"),
+        shiny::tags$p(
+          class = "text-secondary",
+          shiny::tags$small(
+            "Puedes usarlo como plantilla: sustituye los valores de ",
+            shiny::tags$code("loss_amount"), " por los tuyos (conserva la cabecera), ",
+            "guárdalo como CSV y súbelo."
+          )
+        )
       ),
 
       bmk_sidebar_section(
@@ -348,6 +365,13 @@ mod_tool_server <- function(id, manifest) {
       "datos",
       example_data     = example_df,
       expected_columns = c(loss_amount = "numeric")
+    )
+
+    # Descarga del dataset de ejemplo como plantilla (formato correcto garantizado).
+    mod_export_csv_server(
+      "plantilla",
+      data     = shiny::reactive(example_df),
+      filename = "kernel-density-plantilla"
     )
 
     # --- Selector de columna de severidad: columnas numéricas del dataset -----
