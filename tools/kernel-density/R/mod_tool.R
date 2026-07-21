@@ -162,20 +162,28 @@ prepare_view_model <- function(analysis, x, manifest = NULL) {
   )
   tables <- list(risk = risk, model_summary = model_summary, diagnostic = diagnostic)
 
-  # --- indicator (elemento interpretativo simple; puntos ya posicionados) ---
-  ind_pts <- data.frame(
-    label = c(vapply(names(bw$automatic), .bw_label, character(1)), "h actual"),
-    x     = c(unname(bw$automatic), bw$h),
-    type  = c(rep("auto", length(bw$automatic)), "current"),
-    stringsAsFactors = FALSE
+  # --- indicator (elemento interpretativo simple, sin etiquetas superpuestas) --
+  # Los nombres/valores de los métodos automáticos van en un pie de una línea
+  # (ref_caption), que nunca se solapa; en el gráfico solo se etiqueta el h actual.
+  auto_labels <- vapply(
+    names(bw$automatic),
+    function(k) sub(" \\(Rule of Thumb\\)", "", .bw_label(k)),
+    character(1)
+  )
+  ref_caption <- paste(
+    sprintf("%s: %s", auto_labels,
+            vapply(unname(bw$automatic), function(v) bmk_format_number(v, 2),
+                   character(1))),
+    collapse = "    ·    "
   )
   indicator <- list(
-    points       = ind_pts,
-    status       = bw$classification$status,
-    band_low     = bw$classification$band_low,
-    band_high    = bw$classification$band_high,
-    h            = bw$h,
-    rel_position = bw$classification$rel_position
+    automatic   = bw$automatic,
+    h           = bw$h,
+    h_label     = paste0("h = ", bmk_format_number(bw$h, 2)),
+    band_low    = bw$classification$band_low,
+    band_high   = bw$classification$band_high,
+    status      = bw$classification$status,
+    ref_caption = ref_caption
   )
 
   # --- insights (texto ya en character desde el motor) ---
@@ -314,7 +322,8 @@ mod_tool_ui <- function(id) {
 
     # 2. Indicador de bandwidth (4E).
     bmk_plot_container("Indicador de bandwidth",
-                       shiny::plotOutput(ns("bw_indicator"), height = "90px")),
+                       shiny::plotOutput(ns("bw_indicator"), height = "80px"),
+                       shiny::uiOutput(ns("bw_indicator_note"))),
 
     # Gráficos (4D).
     bmk_plot_container("Densidad estimada por kernel",
@@ -617,26 +626,51 @@ mod_tool_server <- function(id, manifest) {
     # ==========================================================================
 
     # --- Indicador de bandwidth (simple, interpretativo, no analítico) --------
+    # Gráfico: SOLO barra visual (línea + banda + puntos). Sin texto: los valores
+    # van en la nota de abajo, así nada se solapa ni se recorta con ningún dato.
     output$bw_indicator <- shiny::renderPlot({
-      vm  <- shiny::req(view_model())
-      pts <- vm$indicator$points
-      ggplot2::ggplot(pts, ggplot2::aes(x = x, y = 0)) +
+      ind <- shiny::req(view_model())$indicator
+      df_auto <- data.frame(x = unname(ind$automatic))
+      df_cur  <- data.frame(x = ind$h)
+      allx <- c(unname(ind$automatic), ind$h)
+      pad  <- 0.08 * (diff(range(allx)) + 1e-9)
+
+      ggplot2::ggplot() +
+        ggplot2::annotate("rect", xmin = ind$band_low, xmax = ind$band_high,
+                          ymin = -1, ymax = 1, fill = bmk_colors$accent, alpha = 0.10) +
         ggplot2::geom_hline(yintercept = 0, color = bmk_colors$border, linewidth = 0.6) +
-        ggplot2::geom_point(ggplot2::aes(color = type, size = type)) +
-        ggplot2::geom_text(ggplot2::aes(label = label), vjust = -1.2, size = 3,
-                           color = bmk_colors$text_secondary) +
-        ggplot2::scale_color_manual(
-          values = c(auto = bmk_colors$text_secondary, current = bmk_colors$accent),
-          guide = "none") +
-        ggplot2::scale_size_manual(values = c(auto = 2.5, current = 4.5), guide = "none") +
-        ggplot2::scale_y_continuous(limits = c(-1, 1.5)) +
-        ggplot2::labs(x = "Ancho de banda (h)", y = NULL) +
+        ggplot2::geom_point(data = df_auto, ggplot2::aes(x = x, y = 0),
+                            color = bmk_colors$text_secondary, size = 3) +
+        ggplot2::geom_point(data = df_cur, ggplot2::aes(x = x, y = 0),
+                            color = bmk_colors$accent, size = 5) +
+        ggplot2::scale_x_continuous(limits = c(min(allx) - pad, max(allx) + pad)) +
+        ggplot2::scale_y_continuous(limits = c(-1, 1)) +
+        ggplot2::labs(x = NULL, y = NULL) +
         theme_bmk_ggplot() +
         ggplot2::theme(
           axis.text.y  = ggplot2::element_blank(),
           axis.ticks.y = ggplot2::element_blank(),
+          axis.title   = ggplot2::element_blank(),
           panel.grid   = ggplot2::element_blank()
         )
+    })
+
+    # Nota de texto (HTML): h actual + valores de los métodos + estado. Nunca se
+    # solapa porque es texto normal, no elementos del gráfico.
+    output$bw_indicator_note <- shiny::renderUI({
+      ind <- shiny::req(view_model())$indicator
+      estado <- switch(ind$status,
+        under = "el h está por debajo de la banda automática (posible undersmoothing)",
+        over  = "el h está por encima de la banda automática (posible oversmoothing)",
+        "el h está próximo a los métodos automáticos"
+      )
+      htmltools::tags$p(
+        class = "text-secondary",
+        htmltools::tags$small(
+          htmltools::tags$strong(ind$h_label), "  ·  ", ind$ref_caption,
+          htmltools::tags$br(), estado
+        )
+      )
     })
 
     # --- Notas del diagnóstico (feature E) ------------------------------------
