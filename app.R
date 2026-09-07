@@ -10,4 +10,4 @@
 #
 # Para desplegar otra herramienta, cambia el slug de abajo (o usa una rama).
 
-shiny::shinyAppDir("tools/kernel-density")
+shiny::shinyAppDir("tools/distribution-fitting")
