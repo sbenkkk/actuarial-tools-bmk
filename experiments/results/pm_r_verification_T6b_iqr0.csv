@@ -1,0 +1,9 @@
+"caso","cfg","IQR","sd","MAD","q_distintos","m","spread_q","estado_iqr","estado_spread","sdlog_iqr"
+"A. degenerada","P3c",0,0,0,1,3,0,"scale_degenerate","scale_degenerate",NA
+"A. degenerada","P5",0,0,0,1,5,0,"scale_degenerate","scale_degenerate",NA
+"B. 60% masa central","P3c",0,1742.31025924035,0,1,3,0,"scale_degenerate","scale_degenerate",NA
+"B. 60% masa central","P5",0,1742.31025924035,0,3,5,4519.22664250914,"scale_degenerate","success",NA
+"C. redondeo x1000","P3c",2000,5251.61330982106,1000,3,3,2000,"success","success",0.739201892947322
+"C. redondeo x1000","P5",2000,5251.61330982106,1000,4,5,5000,"success","success",0.994009001839619
+"D. continua","P3c",2431.95651009193,4839.41483523134,838.83405113459,3,3,2431.95651009193,"success","success",1.29730269798237
+"D. continua","P5",2431.95651009193,4839.41483523134,838.83405113459,5,5,6240.95403318669,"success","success",1.29780447624948

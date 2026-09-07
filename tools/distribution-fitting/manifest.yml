@@ -1,0 +1,14 @@
+# manifest.yml — Actuarial Tools by BMK
+# Fuente única de verdad del nombre y la versión mostrados en la interfaz
+# (apartados 7.2, 9.2 y regla 12). Slug en kebab-case, sin numeración (9.1).
+
+slug: distribution-fitting
+name: Ajuste de Distribuciones
+category: Ajuste de distribuciones
+version: 1.0.2
+status: draft
+description: Ajuste automático de distribuciones (continuas y discretas) y recomendación de la más adecuada.
+input_columns:
+  - loss_amount
+output_type: table+plot
+published_date: ~

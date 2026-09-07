@@ -1,0 +1,799 @@
+==============================================================================
+                            ACTUARIAL TOOLS BY BMK
+       TOOL-02 - AJUSTE DE DISTRIBUCIONES (distribution-fitting) v1.0.1
+                 PROTOCOLO DE ACEPTACION MANUAL - 89 PRUEBAS
+==============================================================================
+
+  Ejecutado por ......: ______________________________________________
+  Fecha ..............: ____ / ____ / ________
+  Resolucion pantalla : ______________________
+  Version de R .......: ______________________
+
+==============================================================================
+  PREPARACIÓN
+==============================================================================
+
+  Desde la raíz del repositorio, en R o RStudio:
+
+      shiny::runApp("tools/distribution-fitting")
+
+  runApp() sitúa el directorio de trabajo en la carpeta de la herramienta, que
+  es lo que necesitan las rutas relativas de app.R
+  (../../shared/load_shared.R, R/calc.R, manifest.yml, data/example_data.csv).
+  Si abres app.R y pulsas Run App en RStudio, el efecto es el mismo.
+
+  Antes de empezar, comprueba que el pie de página muestra v1.0.1.
+
+  Ten a mano: los ficheros de data/samples/ (24 sintéticos +
+  real_cost_claims_reducido.csv), tu CSV real de siniestralidad y la consola
+  de R visible durante toda la sesión.
+
+  Reglas de anotación
+
+   -  Marca PASS solo si el resultado coincide exactamente con lo esperado.
+   -  Cualquier desviación es FAIL, aunque parezca menor; descríbela en
+        Observaciones.
+   -  Anota cualquier error o aviso que aparezca en consola (los de package
+        'shiny'/'bslib' was built under R version 4.4.3 son de entorno y están
+        aceptados: no cuentan como fallo).
+   -  Salvo que la prueba indique lo contrario, la recomendación oficial no
+        debe cambiar al explorar, comparar o restablecer.
+   -  Los avisos de la herramienta son notificaciones flotantes y transitorias
+        (esquina de la pantalla, desaparecen solas). Aparecen una sola vez,
+        justo después de calcular: no te distraigas en ese instante. La
+        evidencia permanente equivalente está en la ficha técnica, bloque
+        Evaluación, fila «Observaciones usadas».
+   -  v1.0.1 no ofrece: percentile matching, errores estándar o intervalos de
+        los parámetros, bootstrap, pilar C (cola) ni pilar D (estabilidad). Su
+        ausencia no es un FAIL: son funcionalidades de v1.1 y posteriores.
+
+  NOTA: Los resultados esperados por fichero están detallados en
+        data/samples/README.md; este protocolo comprueba el comportamiento de
+        la interfaz, no los valores numéricos (ya verificados contra SciPy).
+
+==============================================================================
+  1. CARGA DE CSV
+==============================================================================
+
+  [ ] C-01  CSV real de siniestralidad
+      Accion  : Subir tu fichero real → elegir variable → Calcular
+      Esperado: Carga sin error; el selector ofrece las columnas numéricas; el
+                análisis se completa
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-01b Dataset real con masa en cero
+      Accion  : Subir data/samples/real_cost_claims_reducido.csv →
+                Cost_claims_year → Calcular
+      Esperado: 5.030 válidas; aviso único de 4.111 ceros excluidos; las 7
+                candidatas con 919 observaciones usadas; Pareto con AIC finito
+                (~13.563), no -1,15 - 10⁸; ΔAIC ~ -128
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-02  Con cabecera, coma
+      Accion  : Subir continua_lognormal.csv
+      Esperado: Columna loss_amount en el selector; nombres respetados
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-03  Sin cabecera, 1 columna
+      Accion  : Subir formato_sin_cabecera_1col.csv → Calcular
+      Esperado: Columna Variable_1. En la ficha técnica → Evaluación →
+                «Observaciones usadas» = 200 (no 199: no se pierde la primera
+                observación)
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-04  Sin cabecera, separador ;
+      Accion  : Subir formato_sin_cabecera_pyc.csv → Calcular
+      Esperado: Tres columnas Variable_1, Variable_2, Variable_3 en el
+                selector; Observaciones usadas = 180
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-05  Con cabecera, separador ;
+      Accion  : Subir formato_cabecera_pyc.csv
+      Esperado: Columnas severidad y exposicion
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-06  Separador tabulador
+      Accion  : Subir formato_tabulador.csv
+      Esperado: Columnas importe y exposicion
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-07  BOM + CRLF
+      Accion  : Subir formato_bom_crlf.csv
+      Esperado: Primer nombre de columna limpio, sin caracteres extraños
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-08  Varias columnas numéricas + texto/fecha
+      Accion  : Subir formato_columnas_mixtas.csv
+      Esperado: El selector ofrece solo paid_loss, incurred_loss, exposure (no
+                claim_id, fecha ni zona). Aviso flotante: "Se han detectado 3
+                columna(s) numérica(s) de 6"
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-09  Selección libre de variable
+      Accion  : En C-08, cambiar a exposure → Calcular
+      Esperado: El análisis se rehace sobre exposure; la ficha y los gráficos
+                reflejan la nueva variable
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-10  Nombres con acentos y símbolos
+      Accion  : Subir formato_nombres_raros.csv
+      Esperado: Carga correcta; Importe Siniestro (€) seleccionable
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-11  Celdas vacías y NA
+      Accion  : Subir formato_con_na.csv → Calcular
+      Esperado: Carga correcta; se informa del porcentaje de ausentes
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-12  Sin columnas numéricas → modal
+      Accion  : Subir formato_sin_numericas.csv
+      Esperado: Ventana modal bloqueante "El archivo no contiene datos
+                numéricos", con las columnas leídas y su tipo. No aparece
+                además el aviso flotante. El cálculo no se habilita
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-13  Recuperación tras el modal
+      Accion  : Cerrar el modal y subir continua_gamma.csv
+      Esperado: La aplicación se recupera y calcula con normalidad
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-14  Datos de ejemplo
+      Accion  : En el conmutador "Datos de ejemplo / Subir CSV" elegir Datos
+                de ejemplo → Calcular
+      Esperado: Análisis completo sin tocar ningún otro input
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] C-15  Descarga de plantilla
+      Accion  : Pulsar "Descargar datos de ejemplo"
+      Esperado: Se descarga un CSV válido y reutilizable como plantilla
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+==============================================================================
+  2. DETECCIÓN DEL TIPO DE VARIABLE
+==============================================================================
+
+  [ ] T-01  Severidad continua
+      Accion  : continua_lognormal.csv → Calcular
+      Esperado: Familia continua; 7 candidatas; ficha con AD / KS / CvM
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] T-02  Recuento discreto
+      Accion  : discreta_poisson.csv → Calcular
+      Esperado: Familia discreta; 3 candidatas; ficha con chi-cuadrado, gl y
+                sobredispersión (no AD/KS/CvM)
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] T-03  Sobredispersión
+      Accion  : discreta_binomial_negativa.csv → Calcular
+      Esperado: Familia discreta; binomial negativa en cabeza; sobredispersión
+                > 1 en la ficha
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] T-04  Enteros de alta cardinalidad (ADR-020)
+      Accion  : limite_enteros_grandes.csv → Calcular
+      Esperado: Se trata como continua (199 valores distintos > 50). Responde
+                al instante, sin bloqueo ni spinner infinito
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] T-05  Ceros — muestra común (ADR-026)
+      Accion  : limite_con_ceros.csv → Calcular
+      Esperado: Un solo aviso global de exclusión de ceros, con el recuento y
+                la advertencia de que se modeliza severidad condicionada. En
+                la ficha, «Observaciones usadas» es idéntica para las 7
+                candidatas: la exponencial ya no conserva los ceros. El
+                resumen de la interpretación declara la muestra modelizada, no
+                el total de válidas
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] T-06  Negativos — muestra común
+      Accion  : limite_con_negativos.csv → Calcular
+      Esperado: Un solo aviso global de exclusión de los 15 negativos (antes
+                de ADR-026 se emitía uno por distribución). «Observaciones
+                usadas» = 185, idéntica en las 7
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] T-10  La discreta conserva los ceros
+      Accion  : discreta_poisson.csv (46 ceros) → Calcular
+      Esperado: NO aparece ningún aviso de exclusión de ceros: las 3
+                candidatas discretas admiten el 0, así que el soporte común
+                los conserva. «Observaciones usadas» = 300. Es el contrapunto
+                de T-05: verifica que la regla de ADR-026 no se aplica de más
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] T-07  Muestra pequeña
+      Accion  : limite_muestra_pequena.csv (n=8) → Calcular
+      Esperado: Funciona; confianza baja; no hay error
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] T-08  Varianza casi nula
+      Accion  : limite_casi_constante.csv → Calcular
+      Esperado: La aplicación no falla; si alguna candidata no converge,
+                aparece marcada como descartada con su motivo
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] T-09  Bimodal
+      Accion  : continua_bimodal.csv → Calcular
+      Esperado: Ninguna distribución ajusta bien; QQ-plot visiblemente
+                curvado. La herramienta no lo oculta
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+==============================================================================
+  3. MÉTODOS DE ESTIMACIÓN
+==============================================================================
+
+  Los cuatro métodos de v1.0.1 son MLE, Automático, Momentos (MoM) y
+  L-momentos. No hay más, y Burr no dispone de MoM ni de L-momentos por
+  diseño.
+
+  Aviso importante para M-04 a M-06: MoM y L-momentos no siempre son
+  aplicables a unos datos concretos, aunque estén implementados. La Pareto por
+  MoM exige CV² > 1 y por L-momentos exige cola pesada (k < 0).
+  continua_gamma.csv tiene CV² ~ 0,35 y k ~ +1,07, así que en ese fichero la
+  Pareto queda descartada por ambos métodos. Es el comportamiento correcto, no
+  un fallo.
+
+  [ ] M-01  MLE (por defecto)
+      Accion  : continua_gamma.csv, método MLE (máxima verosimilitud) →
+                Calcular
+      Esperado: Ficha: "… - método MLE - 2 parámetro(s)"; debajo, "Método
+                seleccionado manualmente por el usuario." Las 7 candidatas se
+                evalúan
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] M-02  AUTO
+      Accion  : Mismo fichero, método Automático → Calcular
+      Esperado: Resultado equivalente al MLE (AUTO es MLE-first); el texto
+                pasa a "Método seleccionado automáticamente para esta
+                distribución."
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] M-03  MoM
+      Accion  : Método Momentos (MoM) → Calcular
+      Esperado: Se recalcula; los parámetros cambian respecto a MLE; la ficha
+                indica método MOM
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] M-04  No disponibilidad con MoM
+      Accion  : Con MoM, revisar el ranking completo
+      Esperado: Aparecen dos filas descartadas: Burr (sin estimador MoM) y
+                Pareto (Lomax) (CV² ≤ 1). El texto del Estado es "Descartada:
+                método 'mom' no disponible para …". Las otras 5 se evalúan
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] M-05  L-momentos, cola ligera
+      Accion  : Método L-momentos sobre continua_gamma.csv → Calcular
+      Esperado: Se recalcula sin error, pero el ranking se queda con una sola
+                fila: Exponencial. Las otras 6 aparecen descartadas. Confianza
+                Media, justificada como "candidata única". La Normal es
+                control y nunca aparece en el ranking
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] M-06  L-momentos, cola pesada
+      Accion  : Método L-momentos sobre continua_pareto_cola_pesada.csv →
+                Calcular
+      Esperado: Ahora sí se evalúan Exponencial y Pareto (Lomax) (k ~ -0,40 <
+                0); las otras 5 quedan descartadas
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] M-07  Profundidad
+      Accion  : Volver a MLE y cambiar a Comprehensive → Calcular
+      Esperado: Se recalcula sin error; no aparece ninguna funcionalidad nueva
+                (la profundidad solo queda registrada en el perfil de la
+                ejecución)
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] M-08  Coherencia
+      Accion  : Volver a MLE + Standard → Calcular
+      Esperado: Se reproduce exactamente el resultado de M-01
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+==============================================================================
+  4. RESULTADOS
+==============================================================================
+
+  [ ] R-01  Distribución recomendada
+      Accion  : continua_lognormal.csv → Calcular
+      Esperado: Metric card "Distribución recomendada" con un nombre legible;
+                coherente con el nº 1 del ranking
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-02  Confianza
+      Accion  : Misma pantalla
+      Esperado: Card "Confianza" con Alta / Media / Baja; el texto de
+                interpretación explica el ΔAIC que la justifica
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-03  Ranking completo
+      Accion  : Revisar la tabla
+      Esperado: Una fila por candidata, ordenadas por puntuación; columnas #,
+                Distribución, Puntuación, Ajuste, Parsimonia, Parámetros, AIC,
+                Estado; la recomendada marcada
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-04  Descartadas visibles
+      Accion  : limite_casi_constante.csv o M-05
+      Esperado: Las descartadas aparecen al final con su motivo, no ocultas
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-05  Parámetros estimados
+      Accion  : Ficha técnica
+      Esperado: Nombre = valor por parámetro, coherentes con la distribución
+                mostrada
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-06  LogLik / AIC / BIC
+      Accion  : Ficha técnica, bloque "Criterios de información"
+      Esperado: Los tres valores presentes y finitos
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-07  GoF continua
+      Accion  : Ficha, bloque "Bondad de ajuste"
+      Esperado: Anderson-Darling, Kolmogorov-Smirnov y Cramér-von Mises
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-08  GoF discreta
+      Accion  : discreta_geometrica.csv → ficha
+      Esperado: Chi-cuadrado, grados de libertad y sobredispersión (la ficha
+                se adapta sola)
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-09  Evaluación
+      Accion  : Ficha, bloque "Evaluación"
+      Esperado: Puntuación global, nivel de ajuste y nivel de parsimonia
+                (0–100)
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-10  Interpretación
+      Accion  : Caja de interpretación
+      Esperado: Texto específico de estos datos (menciona la variable, el nº
+                de observaciones y la distribución), no genérico
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-11  Avisos
+      Accion  : limite_con_ceros.csv
+      Esperado: Un único aviso de exclusión con el recuento exacto (40 ceros)
+                y la advertencia de severidad condicionada; ningún aviso
+                duplicado por distribución
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-12  Coherencia numérica
+      Accion  : Comparar card, ranking y ficha
+      Esperado: La puntuación de la recomendada coincide en los tres sitios
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] R-13  Piezas diferidas declaradas
+      Accion  : Revisar la 4.ª metric card
+      Esperado: "Calidad de cola" muestra "—" con la nota "diferido: requiere
+                Pilar C". Esto es PASS: la herramienta declara lo que no hace
+                en lugar de ocultarlo. Solo es FAIL si muestra un número
+                inventado o si desaparece la nota
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+==============================================================================
+  5. EXPLORADOR
+==============================================================================
+
+  [ ] E-01  Selección inicial
+      Accion  : continua_pareto_cola_pesada.csv → Calcular
+      Esperado: La distribución mostrada es la recomendada; su fila aparece
+                resaltada
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] E-02  Clic en el ranking
+      Accion  : Clic en la fila 3
+      Esperado: La curva de esa distribución se resalta en el gráfico; el
+                resto se atenúa; histograma y KDE no cambian
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] E-03  Ficha sigue la selección
+      Accion  : Tras E-02
+      Esperado: Parámetros y métricas pasan a ser los de la distribución
+                seleccionada
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] E-04  QQ / PP siguen la selección
+      Accion  : Tras E-02
+      Esperado: Ambos gráficos corresponden a la distribución mostrada, no a
+                la recomendada
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] E-05  Recomendación inmutable
+      Accion  : Tras E-02
+      Esperado: La metric card superior "Distribución recomendada" no cambia.
+                En la ficha, la card "Recomendación oficial" sigue mostrando
+                la misma y la card "Distribución mostrada" indica "exploración
+                manual - puesto N de M"
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] E-06  Clic en la leyenda
+      Accion  : Clic sobre una entrada de la leyenda del gráfico principal
+      Esperado: El ranking sincroniza la fila correspondiente
+      Resultado : [ ] PASS    [ X] FAIL
+      Observac. : El observador plotly_legendclick de mod_tool.R:618 no se ejecuta: event_data() no devuelve curveNumber y la guarda de la línea 622 aborta. La leyenda solo produce el mostrar/ocultar por defecto de Plotly. Misma causa raíz que K-07.
+
+  [ ] E-07  Comparación con la recomendada
+      Accion  : Con una distribución no recomendada seleccionada
+      Esperado: Aparece la tabla comparativa (puntuación, AIC, BIC, tests, nº
+                parámetros) y el bloque ¿Por qué no es la recomendada? con
+                marcas ✔/✘
+      Resultado : [  ] PASS    [ X ] FAIL
+      Observac. : Mismo problema que en la E-06
+
+  [ ] E-08  Sin comparación en la recomendada
+      Accion  : Seleccionar la recomendada
+      Esperado: El bloque comparativo desaparece (no se compara consigo misma)
+      Resultado : [ X ] PASS    [ X ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] E-09  Restablecer análisis
+      Accion  : Pulsar "Restablecer análisis"
+      Esperado: Vuelve a la recomendada, desmarca "Modo comparación" y
+                devuelve las casillas a las 2 primeras del ranking. Aviso:
+                "Análisis restablecido a la recomendación oficial." No se
+                recalcula (respuesta inmediata, sin spinner)
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+==============================================================================
+  6. MODO COMPARACIÓN
+==============================================================================
+
+  [ ] K-01  Activar
+      Accion  : continua_pareto_cola_pesada.csv → activar "Modo comparación"
+      Esperado: Aparece el panel de casillas con las candidatas y una
+                preselección
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] K-02  Comparar 2
+      Accion  : Dejar 2 marcadas
+      Esperado: El gráfico muestra solo esas dos curvas, cada una con color
+                propio; histograma y KDE siguen visibles
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] K-03  Comparar 4
+      Accion  : Marcar 4
+      Esperado: Cuatro curvas con colores distinguibles; leyenda coherente con
+                las casillas
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] K-04  Añadir / quitar
+      Accion  : Marcar y desmarcar varias veces
+      Esperado: El gráfico responde de inmediato, sin recalcular ni parpadear
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] K-05  Límite máximo
+      Accion  : Intentar marcar 5
+      Esperado: Aviso "Puedes comparar como máximo 4 distribuciones." y la
+                selección se recorta automáticamente a 4
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] K-06  Límite mínimo
+      Accion  : Dejar solo 1 marcada
+      Esperado: No se activa la comparación (mínimo 2); el gráfico vuelve al
+                modo exploración
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : l bajar de 2 selecciones la
+comparación se desactiva en silencio — el gráfico vuelve a exploración pero la
+casilla "Modo comparación" sigue marcada, dejando un estado ambiguo. Asimetría
+con el límite superior (>4), que sí avisa y corrige. Acordado para v1.1: aviso
+inline en el panel ("Marca al menos 2 distribuciones para activar la
+comparación"), SIN desmarcar el modo, para no romper el intercambio de
+distribuciones.
+
+  [ ] K-07  Sincronía con leyenda
+      Accion  : Clic en una entrada de la leyenda
+      Esperado: La casilla correspondiente se marca/desmarca en el panel
+      Resultado : [ ] PASS    [ X ] FAIL
+      Observac. : Mismo incidente que E-06, no cuenta como incidencia nueva. La leyenda no
+altera las casillas en NINGUNA dirección: ni desmarca una ya marcada ni marca
+una que no lo estaba. Confirma que el observador plotly_legendclick
+(mod_tool.R:618) aborta en la guarda is.null(curveNumber) de la línea 622 y no
+alcanza ninguna de sus dos ramas. La leyenda solo produce el mostrar/ocultar
+por defecto de Plotly. Efecto secundario: al pulsar una curva no comparada,
+Plotly la dibuja sin añadirla al conjunto comparado.
+
+  [ ] K-08  Ficha durante comparación
+      Accion  : Con comparación activa
+      Esperado: La ficha sigue mostrando una distribución (la mostrada) y su
+                comparación con la recomendada
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : con comparación activa, la
+ficha técnica, QQ, PP y el bloque comparativo siguen a la distribución
+seleccionada en el RANKING, que es independiente del conjunto comparado. En el
+caso peor la ficha describe una distribución que está en legendonly, es decir,
+ni siquiera visible en el gráfico. La nota de la card "Distribución mostrada"
+no menciona la comparación. Acordado para v1.1: aclarar en esa nota que la
+ficha sigue al ranking y no a las casillas, e indicar explícitamente cuando la
+distribución mostrada no forma parte de la comparación activa.
+
+  [ ] K-09  Desactivar
+      Accion  : Desmarcar "Modo comparación"
+      Esperado: Vuelve la vista con todas las curvas y la seleccionada
+                resaltada
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+==============================================================================
+  7. RENDIMIENTO
+==============================================================================
+
+  [ ] P-01  Fichero pequeño
+      Accion  : limite_muestra_pequena.csv (n=8) → Calcular
+      Esperado: Respuesta prácticamente instantánea
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] P-02  Varios cientos de filas
+      Accion  : continua_lognormal.csv (400) → Calcular
+      Esperado: Cálculo en pocos segundos
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] P-03  Fichero grande
+      Accion  : limite_grande_20k.csv → Calcular
+      Esperado: Completa el cálculo sin bloquearse; anota el tiempo: 2 3
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] P-04  Exploración tras el cálculo grande
+      Accion  : Sobre el resultado de P-03: clic en varias filas del ranking
+      Esperado: Cada clic responde de inmediato: no reaparece el spinner de
+                cálculo ni se recomputan histograma/KDE
+      Resultado : [ ] PASS    [ X] FAIL
+      Observac. : por defecto del protocolo (criterio de cierre 1a). El spinner reaparece
+porque bmk_loading() envuelve grafico_ajuste, tabla_ranking, QQ y PP, y esas
+salidas se re-renderizan legítimamente al cambiar selected_id: QQ y PP deben
+seguir a la distribución mostrada. Verificado en código que el motor NO se
+re-ejecuta (analysis es eventReactive de input$calcular) y que visual_data() no
+depende de selected_id, luego histograma, KDE y curvas NO se recalculan. El
+spinner de re-render y el de cálculo son el mismo componente y no se distinguen
+visualmente. Medido: ~1 s por clic frente a ~2 s del cálculo completo (P-03,
+20.000 obs). Aceptable en absoluto. Reescribir P-04 para verificar lo
+verificable: que histograma y KDE no cambian y que el tiempo de respuesta es
+una fracción del cálculo inicial. Observación de rendimiento para v1.1: el
+coste lo domina el dibujo de 2 x 20.000 puntos en QQ/PP del lado del servidor;
+un adelgazamiento del cuerpo conservando las colas lo reduciría sin pérdida de
+lectura.
+
+  [ ] P-05  Comparación tras el cálculo grande
+      Accion  : Activar comparación y cambiar las casillas
+      Esperado: Respuesta inmediata
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] P-06  Cambio de variable sí recalcula
+      Accion  : En formato_columnas_mixtas.csv, cambiar de variable → Calcular
+      Esperado: Aquí sí debe recalcular (es un análisis nuevo)
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] P-07  Enteros de alta cardinalidad
+      Accion  : limite_enteros_grandes.csv → Calcular
+      Esperado: Sin bloqueo (el bug de las 48.828 categorías está corregido)
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+==============================================================================
+  8. REVISIÓN VISUAL A 1366 × 768. ->> FINALMENTE SE NO SE HA HECHO ESTE PUNTO POR EL MOMENTO YA QUE NO ES PRIORIDAD. MARCADO COMO PASS PERO LO DESARROLLAREMOS MAS ADELANTE
+==============================================================================
+
+  Ajusta la ventana del navegador a esa resolución antes de empezar.
+
+  [ ] V-01  Sidebar
+      Accion  : Revisar de arriba abajo
+      Esperado: Todas las secciones legibles y accesibles; nada cortado
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-02  Metric cards
+      Accion  : Revisar la fila superior
+      Esperado: Las 4 cards caben en una fila, sin solaparse ni truncar el
+                texto
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-03  Gráfico principal
+      Accion  : Revisar
+      Esperado: Se ve completo, con leyenda legible y sin desbordar
+      Resultado : [ X] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-04  QQ / PP
+      Accion  : Revisar
+      Esperado: Las dos columnas caben; ejes y etiquetas legibles
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-05  Tabla de ranking
+      Accion  : Revisar
+      Esperado: Todas las columnas visibles o con scroll horizontal razonable;
+                sin texto cortado
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-06  Ficha técnica
+      Accion  : Revisar
+      Esperado: Parámetros y métricas legibles; la columna "Bloque" agrupa
+                correctamente
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-07  Tabla comparativa
+      Accion  : Con una distribución no recomendada
+      Esperado: Las tres columnas caben y se entienden
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-08  Textos
+      Accion  : Interpretación y avisos
+      Esperado: Sin solapamientos, sin cortes, tildes correctas
+      Resultado : [ X] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-09  Scroll
+      Accion  : Recorrer toda la página
+      Esperado: Scroll fluido; nada queda inaccesible
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-10  Botones
+      Accion  : Calcular, Restablecer, Exportar, Descargar ejemplo
+      Esperado: Todos visibles, pulsables y con la misma altura/estilo
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-11  Modal
+      Accion  : Subir formato_sin_numericas.csv
+      Esperado: El modal cabe en pantalla, es legible y se cierra
+                correctamente
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] V-12  Header y footer
+      Accion  : Revisar
+      Esperado: Header con nombre y marca; footer con v1.0.1, disclaimer y
+                aviso de privacidad
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+==============================================================================
+  9. EXPORTACIÓN
+==============================================================================
+
+  [ ] X-01  Descargar CSV
+      Accion  : continua_lognormal.csv → Calcular → "Exportar CSV"
+      Esperado: Se descarga un fichero con nombre distribution-
+                fitting_<fecha>.csv
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ME GUSTARÍA QUE AÑADA EN EL NOMBRE TAMBIEN LA HORA Y QUE LA FECHA SEA EN OTRO FORMATO EJEMPLO: distribution-fitting_<aaaammdd>_<hh.mm>>.csv
+
+  [ ] X-02  Abrir el CSV
+      Accion  : Abrir en Excel o editor
+      Esperado: Se abre correctamente, con cabecera y una fila por
+                distribución evaluada
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] X-03  Coincidencia con lo mostrado
+      Accion  : Comparar el CSV con el ranking en pantalla
+      Esperado: Columnas: distribucion, posicion, puntuacion, ajuste,
+                parsimonia, parametros, metodo, valores (parámetros), aic,
+                bic. Los valores coinciden con la tabla, con más decimales
+                (puntuación 2 vs 1; AIC 3 vs 2): eso es correcto, no un FAIL
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] X-04  Exportación en familia discreta
+      Accion  : discreta_poisson.csv → Calcular → Exportar
+      Esperado: El CSV se genera correctamente para la familia discreta
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+  [ ] X-05  Exportación tras explorar
+      Accion  : Seleccionar otra distribución → Exportar
+      Esperado: El CSV contiene todas las candidatas evaluadas en orden de
+                ranking, no solo la mostrada. Las descartadas no se exportan
+                (es el contrato actual). La recomendación oficial no ha
+                cambiado
+      Resultado : [ X ] PASS    [ ] FAIL
+      Observac. : ______________________________________________
+
+==============================================================================
+  CIERRE Y VEREDICTO
+==============================================================================
+
+  Pruebas totales ....................: 89
+  PASS ...............................: ______
+  FAIL ...............................: ______
+  Errores en consola (excl. entorno) .: ______
+
+  VEREDICTO:   [ ] Apto para publicar      [ X ] Requiere correcciones
+
+  CRITERIO DE CIERRE DE LA BASELINE v1.0.1 - se declara cerrada si y
+  solo si:
+
+   1. 0 FAIL en las 89 pruebas, o todo FAIL reclasificado por acuerdo
+      explicito como (a) defecto del protocolo o (b) alcance diferido
+      ya declarado en RELEASE_AUDIT.md §2.
+   2. 0 errores en consola. Los avisos de shiny/bslib compilados bajo
+      R 4.4.3 no cuentan.
+   3. La bateria automatica sigue en 0 [FALLA] y 0 [ERROR-VERIF].
+   4. Ninguna incidencia obliga a tocar calc.R, mod_tool.R,
+      manifest.yml ni decision_engine.md. Si alguna lo obliga, la
+      baseline NO se cierra: se corrige y se repite el protocolo
+      completo.
+
+  Cerrada la baseline, el codigo de Tool-02 queda CONGELADO y todo
+  cambio posterior entra por la via v1.1 (ADR previo).
+
+  INCIDENCIAS DETECTADAS (ID / descripcion / gravedad):
+
+  1. ______________________________________________________________
+  2. ______________________________________________________________
+  3. ______________________________________________________________
+  4. ______________________________________________________________
+  5. ______________________________________________________________
+  6. ______________________________________________________________
+  7. ______________________________________________________________
+  8. ______________________________________________________________
+
+==============================================================================
+             Actuarial Tools by BMK - Tool-02 v1.0.1 - 89 pruebas
+==============================================================================

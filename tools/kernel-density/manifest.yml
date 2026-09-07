@@ -1,0 +1,15 @@
+# manifest.yml — Actuarial Tools by BMK
+# Fuente única de verdad del nombre y la versión mostrados en la interfaz
+# (apartados 7.2, 9.2 y regla 12). Slug en kebab-case, sin numeración (9.1);
+# el orden/categoría del catálogo es metadato, no nombre de carpeta.
+
+slug: kernel-density
+name: Estimación de Densidades por Kernel
+category: Estimación de densidades
+version: 1.0.0
+status: draft
+description: Estimación no paramétrica de densidad y VaR de una variable de severidad.
+input_columns:
+  - loss_amount
+output_type: table+plot
+published_date: ~

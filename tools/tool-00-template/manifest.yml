@@ -1,0 +1,14 @@
+# manifest.yml — Actuarial Tools by BMK
+# Fuente única de verdad del nombre y la versión mostrados en la interfaz
+# (apartados 7.2, 9.2 y regla 12).
+
+slug: tool-00-template
+name: Plantilla Base (Tool 0)
+category: Infraestructura
+version: 1.0.0
+status: draft
+description: Plantilla base del framework; valida el ensamblaje, sin lógica actuarial.
+input_columns:
+  - loss_amount
+output_type: table+plot
+published_date: ~

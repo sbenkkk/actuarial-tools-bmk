@@ -1,0 +1,707 @@
+R: R version 4.4.1 (2024-06-14)
+Fecha: sábado,  8 de agosto de 2026, 21:25:16 CEST
+
+==================================================================
+>> tools/distribution-fitting :: tests/b1_unit_tests.R
+==================================================================
+== B1 UNIT TESTS — distribution-fitting ==
+
+-- 1. Profiler --
+  OK  - profiler: conserva el nombre de la variable
+  OK  - profiler: n cuenta también los NA (5)
+  OK  - profiler: n_valid excluye NA (4)
+  OK  - profiler: pct_na = 1/5  (0.200000 ~ 0.200000 +/- 1e-06)
+  OK  - profiler: pct_zeros = 0  (0.000000 ~ 0.000000 +/- 1e-06)
+  OK  - profiler: pct_negatives = 0  (0.000000 ~ 0.000000 +/- 1e-06)
+  OK  - profiler: min  (2.500000 ~ 2.500000 +/- 1e-06)
+  OK  - profiler: max  (10.200000 ~ 10.200000 +/- 1e-06)
+  OK  - profiler: media  (5.050000 ~ 5.050000 +/- 1e-06)
+  OK  - profiler: mediana  (3.750000 ~ 3.750000 +/- 1e-06)
+  OK  - profiler: desviación típica (muestral)  (3.523729 ~ 3.523729 +/- 1e-06)
+  OK  - profiler: coeficiente de variación  (0.697768 ~ 0.697768 +/- 1e-06)
+  OK  - profiler: nº de valores únicos
+  OK  - profiler: soporte positivo (>0)
+  OK  - profiler: tipo continuo (valores no enteros)
+  OK  - profiler: asimetría = 0 (conjunto simétrico)  (0.000000 ~ 0.000000 +/- 1e-09)
+  OK  - profiler: exceso de curtosis = -1.3  (-1.300000 ~ -1.300000 +/- 1e-06)
+  OK  - profiler: asimetría > 0 (sesgo a la derecha)
+
+-- 2. Detector --
+  OK  - detector: valores no enteros -> continua
+  OK  - detector: enteros no negativos -> discreta
+  OK  - detector: enteros con negativo -> continua (no es recuento)
+  OK  - detector: enteros grandes, pocos únicos -> discreta
+  OK  - detector: discrete_max_unique=3 reclasifica 6 únicos como continua
+  OK  - detector: por defecto (50) los mismos datos son discretos
+  OK  - detector: el caso de prueba supera el umbral de valores distintos
+  OK  - detector (ADR-020): enteros con >50 valores distintos -> continua
+  OK  - detector: con el umbral desactivado (Inf) vuelve al comportamiento anterior
+
+-- 3. Selector --
+  OK  - selector: familia continua
+  OK  - selector: 7 candidatas continuas del §4.1 en orden
+  OK  - selector: Normal como control (§4.3)
+  OK  - selector: familia discreta
+  OK  - selector: 3 candidatas discretas del §4.2 en orden
+  OK  - selector: sin control en discreta
+
+-- 4. Orchestrator (wiring) --
+  OK  - orchestrator: perfila y enruta a continua
+  OK  - orchestrator: selecciona familia continua
+  OK  - orchestrator: meta marca el bloque implementado (B2.1)
+  OK  - orchestrator: expone decision_engine_version (0.2, ADR-021)
+  OK  - orchestrator: el motor MLE ajusta las 7 candidatas continuas (B2)
+  OK  - orchestrator: capa view_model sigue como stub pendiente (B6)
+  OK  - orchestrator: modo manual fuerza la familia
+
+B1 UNIT TESTS SUPERADOS
+   [PASA] tools/distribution-fitting/tests/b1_unit_tests.R
+
+==================================================================
+>> tools/distribution-fitting :: tests/b2_unit_tests.R
+==================================================================
+== B2.1 UNIT TESTS (motor MLE) — distribution-fitting ==
+
+-- 1. Estructura --
+  OK  - motor: método MLE
+  OK  - motor: familia continua
+  OK  - motor: 7 ajustes de candidatas
+  OK  - motor: ids de candidatas en orden
+  OK  - motor: Normal ajustada como control
+  OK  - motor: cada ajuste expone los campos del contrato
+
+-- 2. Formas cerradas --
+  OK  - exponential: rate = 1/media  (0.000425144 ~ 0.000425144, rel<=1e-05)
+  OK  - lognormal: meanlog  (7.15222 ~ 7.15222, rel<=1e-05)
+  OK  - lognormal: sdlog  (1.17847 ~ 1.17847, rel<=1e-05)
+  OK  - normal (control): media  (2352.14 ~ 2352.14, rel<=1e-06)
+  OK  - normal (control): sd (poblacional)  (2654.88 ~ 2654.88, rel<=1e-06)
+
+-- 3. logLik vs scipy --
+  OK  - logLik exponential  (-105.156978 ~ -105.156978 +/- 0.02)
+  OK  - logLik gamma  (-105.146828 ~ -105.146828 +/- 0.05)
+  OK  - logLik weibull  (-105.109709 ~ -105.109709 +/- 0.05)
+  OK  - logLik lognormal  (-104.824476 ~ -104.824476 +/- 0.02)
+  OK  - logLik loglogistic  (-105.076032 ~ -105.076032 +/- 0.1)
+  OK  - logLik pareto (cresta plana)  (-105.028853 ~ -105.028853 +/- 0.15)
+  OK  - logLik normal (control)  (-111.637100 ~ -111.637100 +/- 0.02)
+
+-- 4. Parámetros optim --
+  OK  - gamma: shape  (0.950629 ~ 0.950629, rel<=0.02)
+  OK  - gamma: scale  (2474.3 ~ 2474.3, rel<=0.02)
+  OK  - weibull: shape  (0.93604 ~ 0.936041, rel<=0.03)
+  OK  - weibull: scale  (2275.6 ~ 2275.6, rel<=0.03)
+  OK  - loglogistic: shape  (1.45808 ~ 1.45808, rel<=0.05)
+  OK  - loglogistic: scale  (1307.43 ~ 1307.43, rel<=0.05)
+  OK  - pareto: ajuste finito con parámetros positivos
+  OK  - burr: ajuste finito, parámetros positivos, converge
+
+-- 5. Discreta --
+  OK  - discreta: familia detectada
+  OK  - discreta: 3 candidatas
+  OK  - poisson: lambda = media  (1.53333 ~ 1.53333, rel<=1e-05)
+  OK  - geometric: prob = 1/(1+media)  (0.394737 ~ 0.394737, rel<=0.0001)
+  OK  - negbin: mu = media  (1.53333 ~ 1.53333, rel<=1e-05)
+  OK  - negbin: size (MLE)  (3.79096 ~ 3.79095, rel<=0.03)
+  OK  - logLik poisson  (-25.005534 ~ -25.005534 +/- 0.02)
+  OK  - logLik geometric  (-25.491154 ~ -25.491154 +/- 0.02)
+  OK  - logLik negbin  (-24.570337 ~ -24.570337 +/- 0.02)
+
+-- 6. Ceros --
+  OK  - ceros: lognormal (estrictamente positiva) excluye el 0 y cuantifica
+  OK  - ceros: exponential (admite 0) conserva las 6 observaciones
+
+B2.1 UNIT TESTS SUPERADOS
+   [PASA] tools/distribution-fitting/tests/b2_unit_tests.R
+
+==================================================================
+>> tools/distribution-fitting :: tests/b2_2_unit_tests.R
+==================================================================
+== B2.2 UNIT TESTS (MoM + L-momentos + AUTO) — distribution-fitting ==
+
+-- 1. MoM (continua) --
+  OK  - motor: método solicitado = mom
+  OK  - cada ajuste registra method='mom' y motivo
+  OK  - MoM exponential: rate  (0.000425144 ~ 0.000425144, rel<=1e-05)
+  OK  - MoM normal (control): media  (2352.14 ~ 2352.14, rel<=1e-06)
+  OK  - MoM normal (control): sd  (2654.88 ~ 2654.88, rel<=1e-06)
+  OK  - MoM lognormal: meanlog  (7.35232 ~ 7.35232, rel<=1e-05)
+  OK  - MoM lognormal: sdlog  (0.906383 ~ 0.906383, rel<=1e-05)
+  OK  - MoM gamma: shape  (0.784944 ~ 0.784944, rel<=1e-05)
+  OK  - MoM gamma: scale  (2996.57 ~ 2996.57, rel<=1e-05)
+  OK  - MoM weibull: shape (uniroot)  (0.887936 ~ 0.887936, rel<=0.0001)
+  OK  - MoM weibull: scale  (2218.79 ~ 2218.79, rel<=0.0001)
+  OK  - MoM loglogistic: shape (beta>2)  (2.56135 ~ 2.56135, rel<=0.0001)
+  OK  - MoM loglogistic: scale  (1805.19 ~ 1805.19, rel<=0.0001)
+  OK  - MoM pareto: shape (CV^2>1)  (9.29989 ~ 9.29989, rel<=1e-05)
+  OK  - MoM pareto: scale  (19522.5 ~ 19522.5, rel<=1e-05)
+  OK  - MoM burr: marcado no disponible (sin MoM en v1)
+
+-- 2. L-momentos --
+  OK  - motor: método solicitado = lmom
+  OK  - Lmom exponential: rate  (0.000425144 ~ 0.000425144, rel<=1e-05)
+  OK  - Lmom normal (control): media = l1  (2352.14 ~ 2352.14, rel<=1e-06)
+  OK  - Lmom normal (control): sd = sqrt(pi)*l2  (2475.01 ~ 2475.01, rel<=1e-05)
+  OK  - Lmom pareto: alpha (GPD->Lomax)  (3.16918 ~ 3.16918, rel<=0.0001)
+  OK  - Lmom pareto: scale  (5102.22 ~ 5102.22, rel<=0.0001)
+  OK  - Lmom gamma: no disponible en v1 (diferido)
+
+-- 3. AUTO --
+  OK  - motor: método solicitado = auto
+  OK  - AUTO: gamma se ajusta por MLE (convergió)
+  OK  - AUTO: registra el motivo de la elección
+  OK  - AUTO gamma: logLik = MLE  (-105.147 ~ -105.147, rel<=0.001)
+
+-- 4. MoM (discreta) --
+  OK  - MoM poisson: lambda  (1.53333 ~ 1.53333, rel<=1e-05)
+  OK  - MoM geometric: prob  (0.394737 ~ 0.394737, rel<=0.0001)
+  OK  - MoM negbin: mu = media  (1.53333 ~ 1.53333, rel<=1e-05)
+  OK  - MoM negbin: size (var>media)  (4.03817 ~ 4.03817, rel<=0.0001)
+
+-- 5. Default = MLE --
+  OK  - default: motor$method = 'mle' (sin cambios de contrato)
+
+B2.2 UNIT TESTS SUPERADOS
+   [PASA] tools/distribution-fitting/tests/b2_2_unit_tests.R
+
+==================================================================
+>> tools/distribution-fitting :: tests/b3_unit_tests.R
+==================================================================
+== B3 UNIT TESTS (Diagnostics) — distribution-fitting ==
+
+-- 1. Estructura --
+  OK  - diagnostics: familia continua
+  OK  - diagnostics: 7 ajustes diagnosticados
+  OK  - diagnostics: incluye el control Normal
+  OK  - diagnostics: cada entrada expone information y gof
+  OK  - diagnostics: information con aic/aicc/bic
+  OK  - diagnostics (continua): gof con ks/cvm/ad
+
+-- 2. GoF continua (gamma) --
+  OK  - gamma KS D (cruzado con scipy)  (0.117133 ~ 0.117133 +/- 0.001)
+  OK  - gamma CvM W^2 (cruzado con scipy)  (0.026205 ~ 0.026205 +/- 0.001)
+  OK  - gamma AD A^2  (0.182360 ~ 0.182360 +/- 0.005)
+
+-- 3. AIC/AICc/BIC (gamma) --
+  OK  - gamma AIC  (214.294 ~ 214.294, rel<=0.0001)
+  OK  - gamma AICc  (215.627 ~ 215.627, rel<=0.0001)
+  OK  - gamma BIC  (215.263 ~ 215.263, rel<=0.0001)
+
+-- 4. GoF discreta (poisson) --
+  OK  - diagnostics: familia discreta
+  OK  - diagnostics (discreta): gof con chisq/df/sobredispersión
+  OK  - poisson chi-cuadrado (categorías agrupadas)  (1.673333 ~ 1.673333 +/- 0.001)
+  OK  - poisson df = celdas - 1 - nº params
+  OK  - poisson: 5 celdas tras la agrupación
+  OK  - poisson: se documenta el uso del suelo relajado (n pequeño)
+  OK  - poisson sobredispersión (var/media)  (1.379710 ~ 1.379710 +/- 0.0001)
+  OK  - poisson AIC  (52.0111 ~ 52.0111, rel<=0.0001)
+  OK  - poisson BIC  (52.7191 ~ 52.7191, rel<=0.0001)
+
+B3 UNIT TESTS SUPERADOS
+   [PASA] tools/distribution-fitting/tests/b3_unit_tests.R
+
+==================================================================
+>> tools/distribution-fitting :: tests/b4_unit_tests.R
+==================================================================
+== B4 UNIT TESTS (Assessment) — distribution-fitting ==
+
+-- 1. Estructura --
+  OK  - assessment: pesos A=0.7, B=0.3 (decision_engine)
+  OK  - assessment: 7 candidatas en el ranking
+  OK  - assessment: sin excluidas (todas convergen)
+  OK  - assessment: categorías absolutas marcadas como diferidas
+  OK  - assessment: control (Normal) evaluado
+  OK  - assessment: decision_engine_version (0.2, ADR-021)
+
+-- 2. Ranking continua --
+  OK  - ranking: mejor ajuste = lognormal (top)
+  OK  - ranking: composite del top > 80
+  OK  - recomendación Nivel 1 = lognormal
+  OK  - confianza = baja (ΔAIC = -1.33: lognormal y loglogística indistinguibles)
+  OK  - ΔAIC con la siguiente candidata  (-1.3350 ~ -1.3350 +/- 0.01)
+  OK  - separación del compuesto (descriptiva, ya no decide)  (9.4636 ~ 9.4637 +/- 0.01)
+  OK  - exponential: pilar A = 0 (peor ajuste)  (0.0000 ~ 0.0000 +/- 0.5)
+  OK  - exponential: composite = 0.7*0 + 0.3*100 = 30  (30.0000 ~ 30.0000 +/- 0.1)
+
+-- 3. Ranking discreta --
+  OK  - assessment: familia discreta
+  OK  - assessment: 3 candidatas discretas
+  OK  - ranking discreta: top = binomial negativa (sobredispersión)
+  OK  - negbin: composite = 70  (70.0000 ~ 70.0000 +/- 0.5)
+  OK  - poisson: composite = 30  (30.0000 ~ 30.0000 +/- 0.5)
+  OK  - confianza = baja (ΔAIC = -1.13: negbin y Poisson indistinguibles con n=15)
+
+-- 4. Diferidos --
+  OK  - assessment: EVT, Nivel 2 y estabilidad marcados como diferidos
+
+B4 UNIT TESTS SUPERADOS
+   [PASA] tools/distribution-fitting/tests/b4_unit_tests.R
+
+==================================================================
+>> tools/distribution-fitting :: tests/b5_unit_tests.R
+==================================================================
+== B5 UNIT TESTS (Text Builders) — distribution-fitting ==
+
+-- 1. Estructura --
+  OK  - text_builder: expone summary/recommendation/insights/warnings/cards
+  OK  - summary: texto no vacío
+  OK  - recommendation: headline/confidence/main_reason/alternatives
+  OK  - insights: why_won/strengths/weaknesses/observations
+  OK  - warnings: vector de texto
+
+-- 2. Coherencia con B4 --
+  OK  - recommendation: nombra la distribución recomendada por B4
+  OK  - recommendation: refleja el nivel de confianza de B4
+  OK  - cards: una por candidata evaluada + una por descartada
+  OK  - cards: la primera corresponde al top del ranking
+  OK  - cards: el score se copia del assessment (no se recalcula)
+  OK  - summary: menciona la variable y el tipo detectado
+
+-- 3. Consumidor puro --
+  OK  - puro: usa el ganador y el score del assessment sintético
+  OK  - puro: usa la confianza sintética
+  OK  - puro: genera una card por entrada del ranking
+  OK  - puro: usa la variable del profile sintético
+  OK  - puro: sin flags problemáticos, no inventa avisos
+
+-- 4. Determinismo --
+  OK  - determinismo: la misma entrada produce exactamente el mismo texto
+
+-- 5. Warnings --
+  OK  - warnings: informa de la exclusión de ceros (soporte estrictamente positivo)
+  OK  - warnings: sin ceros en los datos, no aparece ese aviso
+  OK  - warnings: no inventa avisos de estabilidad (Pilar D diferido)
+
+-- 6. Discreta --
+  OK  - summary (discreta): refleja el tipo de variable
+  OK  - recommendation (discreta): recomienda la binomial negativa
+
+-- 7. Veredicto --
+  OK  - cada card incluye un veredicto no vacío
+  OK  - veredicto determinista: misma banda -> misma frase
+  OK  - bandas distintas -> veredictos distintos
+  OK  - ajuste fuerte + parsimonia fuerte -> menciona la parsimonia
+  OK  - ajuste fuerte + parsimonia débil -> menciona la complejidad
+  OK  - ajuste débil -> lo declara explícitamente
+
+-- 8. Comparación con la recomendada --
+  OK  - la propia recomendada no se compara consigo misma
+  OK  - cada candidata se compara en ajuste, parsimonia y proximidad
+  OK  - cada observación trae marca (ok) y texto
+  OK  - peor en todo -> tres observaciones desfavorables
+  OK  - mejor o próxima -> tres observaciones favorables
+  OK  - determinismo: misma entrada -> mismas observaciones
+
+B5 UNIT TESTS SUPERADOS
+   [PASA] tools/distribution-fitting/tests/b5_unit_tests.R
+
+==================================================================
+>> tools/distribution-fitting :: tests/b6_unit_tests.R
+==================================================================
+== B6 UNIT TESTS (ViewModel) — distribution-fitting ==
+
+-- 1. Secciones §12 --
+  OK  - view model: expone todas las secciones del §12 + presentation
+  OK  - meta: schema_version del contrato
+  OK  - meta: decision_engine_version copiado
+  OK  - meta: versión del manifest y variable modelizada
+  OK  - meta: perfil de profundidad
+
+-- 2. Metric cards --
+  OK  - cards: 4 KPIs de cabecera
+  OK  - card 1: distribución recomendada (copiada del assessment)
+  OK  - card 4: calidad de cola marcada como diferida (Pilar C)
+  OK  - cards: icono declarado como nombre (bsicons)
+
+-- 3. Ranking --
+  OK  - ranking: data.frame listo para DT
+  OK  - ranking: una fila por candidata evaluada + descartada
+  OK  - ranking: la puntuación se copia del assessment (no se recalcula)
+  OK  - ranking: marca la fila recomendada
+  OK  - ranking: etiquetas de columna coherentes con los datos
+
+-- 4. Recomendación --
+  OK  - recomendación: headline idéntico al de B5 (no se genera texto nuevo)
+  OK  - recomendación: parámetros copiados del motor
+  OK  - recomendación: Nivel 2 y EVT marcados como diferidos
+
+-- 5. Plots (spec) --
+  OK  - plots (continua): 5 gráficos especificados
+  OK  - plots: sin datos numéricos (evaluación diferida al Visual Engine, B7)
+  OK  - plots: 3 pendientes de B7 (histograma, QQ, PP)
+  OK  - plots: 2 diferidos por requerir Pilar C (mean-excess, VaR/TVaR)
+
+-- 6. Interpretación / avisos / exportación --
+  OK  - interpretación: summary copiado de B5
+  OK  - interpretación: una card por distribución (de B5)
+  OK  - export_table: data.frame con una fila por distribución evaluada
+  OK  - export_table: columnas de exportación presentes
+
+-- 7. Presentación --
+  OK  - presentación: sin literales de color (solo tokens semánticos)
+  OK  - cards: tone es un token semántico, no un hex
+  OK  - presentación: orden de secciones definido
+
+-- 8. Determinismo / discreta --
+  OK  - determinismo: misma entrada y fecha -> mismo View Model
+  OK  - discreta: familia en meta
+  OK  - discreta: solo los gráficos aplicables a su familia (3)
+  OK  - discreta: flag looks_like_count activo
+
+-- 9. Ficha técnica --
+  OK  - fits: expone loglik, verdict, método y métricas para la ficha técnica
+  OK  - fits: la log-verosimilitud se copia del motor (no se recalcula)
+  OK  - fits: el veredicto viene redactado por los Text Builders
+  OK  - fits: el veredicto es exactamente el de B5 (sin texto nuevo)
+  OK  - fits: todas las candidatas evaluadas exponen su log-verosimilitud
+  OK  - fits: expone el nº de parámetros para la ficha y la comparación
+  OK  - fits: la comparación con la recomendada llega desde B5
+
+B6 UNIT TESTS SUPERADOS
+   [PASA] tools/distribution-fitting/tests/b6_unit_tests.R
+
+==================================================================
+>> tools/distribution-fitting :: tests/b7_unit_tests.R
+==================================================================
+== B7 UNIT TESTS (Visual Engine) — distribution-fitting ==
+
+-- 1. Estructura --
+  OK  - visual: expone los 5 gráficos del contrato §12.7
+  OK  - visual: histograma, QQ y PP listos
+  OK  - visual: mean-excess y VaR/TVaR diferidos (requieren Pilar C)
+
+-- 2. Histograma / KDE --
+  OK  - histograma: 5 clases (regla de Sturges, n=12)
+  OK  - histograma: los conteos suman n
+  OK  - histograma: la densidad integra 1  (1.000000 ~ 1.000000 +/- 1e-09)
+  OK  - KDE: ancho de banda de Silverman  (894.988956 ~ 894.988956 +/- 0.0001)
+  OK  - KDE: rejilla de 512 puntos
+  OK  - KDE: densidad no negativa
+
+-- 3. Curvas ajustadas --
+  OK  - curvas: una por candidata del ranking
+  OK  - curvas: evaluadas sobre la rejilla de 512 puntos
+  OK  - curvas: densidades no negativas
+  OK  - densidad lognormal en la mediana (vs SciPy)  (0.000250 ~ 0.000250 +/- 1e-09)
+
+-- 4. QQ / PP --
+  OK  - QQ: un punto por observación
+  OK  - QQ: usa la distribución recomendada por B4
+  OK  - QQ: primer cuantil teórico (lognormal)  (165.920169 ~ 165.920200 +/- 0.001)
+  OK  - QQ: último cuantil teórico  (9827.410393 ~ 9827.410400 +/- 0.01)
+  OK  - QQ: primer estadístico de orden  (120.300000 ~ 120.300000 +/- 1e-09)
+  OK  - QQ: la muestra va ordenada
+  OK  - PP: CDF ajustada en el mínimo  (0.022509 ~ 0.022509 +/- 1e-05)
+  OK  - PP: probabilidad empírica (i-0.5)/n  (0.041667 ~ 0.041667 +/- 1e-09)
+  OK  - ECDF: primer punto = 1/n  (0.083333 ~ 0.083333 +/- 1e-09)
+  OK  - ECDF: último punto = 1  (1.000000 ~ 1.000000 +/- 1e-12)
+
+-- 5. Discreta --
+  OK  - discreta: familia declarada
+  OK  - discreta: las frecuencias observadas suman 1  (1.000000 ~ 1.000000 +/- 1e-12)
+  OK  - discreta: las curvas ajustadas son PMF sobre k
+  OK  - discreta: QQ sobre la recomendada (binomial negativa)
+
+-- 6. Pureza --
+  OK  - pureza: el objeto de análisis no se modifica
+  OK  - determinismo: misma entrada -> mismos datos de gráficos
+
+-- 7. QQ/PP por distribución --
+  OK  - por defecto usa la distribución recomendada y lo declara
+  OK  - coincide con el QQ que genera build_visual_data() por defecto
+  OK  - acepta una distribución distinta y la marca como no recomendada
+  OK  - los cuantiles teóricos cambian con la distribución elegida
+  OK  - la muestra se prepara según el soporte de cada distribución
+  OK  - el PP-plot sigue a la misma distribución
+  OK  - un id no evaluado recae en la recomendada (sin error)
+  OK  - build_visual_data() propaga la distribución a QQ/PP
+  OK  - el histograma, la KDE y las curvas NO dependen de la selección
+
+B7 UNIT TESTS SUPERADOS
+   [PASA] tools/distribution-fitting/tests/b7_unit_tests.R
+
+==================================================================
+>> tools/distribution-fitting :: tests/b8_smoke_test.R
+==================================================================
+Aviso:
+package ‘shiny’ was built under R version 4.4.3 
+
+Adjuntando el paquete: ‘bslib’
+
+The following object is masked from ‘package:utils’:
+
+    page
+
+Aviso:
+package ‘bslib’ was built under R version 4.4.3 
+== B8 SMOKE TEST (Shiny UI) — distribution-fitting ==
+
+-- 1. Construcción de la UI --
+  OK  - mod_tool_ui: se construye sin errores
+
+-- 2. Validación de datos --
+  OK  - dataset inválido: bmk_validate_data marca is_valid = FALSE
+  OK  - contrato válido con loss_amount numérico
+
+-- 3. Cálculo con datos de ejemplo --
+  OK  - el motor devuelve un análisis con el dataset de ejemplo
+  OK  - la UI recibe el View Model completo (B6)
+  OK  - meta: la versión mostrada procede del manifest
+  OK  - la UI recibe los datos de gráficos (B7) listos
+
+-- 4. Renderizado --
+  OK  - metric cards renderizadas
+  OK  - caja de interpretación renderizada
+  OK  - gráfico de ajuste: objeto ggplot construido desde los datos de B7
+  OK  - QQ y PP: objetos ggplot construidos desde los datos de B7
+  OK  - la tabla muestra todas las candidatas (evaluadas + descartadas)
+  OK  - exportación: data.frame no vacío
+
+-- 5. Interacción: cambio de método --
+  OK  - cambiar el método recalcula con la opción elegida
+
+-- 6. Interacción: cambio de variable --
+  OK  - cambiar la variable recalcula sobre la columna elegida
+  OK  - el View Model se reconstruye tras el cambio de variable
+
+-- 7. Profundidad del análisis --
+  OK  - el perfil de profundidad viaja al View Model
+
+-- 8. Explorador: sincronización ranking <-> gráfico --
+  OK  - selección inicial = distribución recomendada
+  OK  - clic en el ranking cambia la distribución explorada
+  OK  - la recomendación oficial NO cambia al explorar otra distribución
+  OK  - los parámetros mostrados son los de la distribución seleccionada
+  OK  - gráfico principal: objeto plotly construido con la selección
+  OK  - gráfico principal: se reconstruye con la recomendada
+  OK  - QQ-plot sigue a la distribución mostrada
+  OK  - PP-plot sigue a la distribución mostrada
+  OK  - QQ declara que no es la recomendada (exploración manual)
+  OK  - QQ y PP se construyen con los datos de la distribución mostrada
+  OK  - al volver a la recomendada, QQ/PP y la marca se restauran
+
+-- 9. Ficha técnica --
+  OK  - ficha: log-verosimilitud disponible
+  OK  - ficha: interpretación automática disponible (de B5)
+  OK  - ficha: método de estimación procede del View Model
+
+-- 10. Modo comparación --
+  OK  - modo comparación desactivado -> sin conjunto comparado
+  OK  - modo comparación: 3 distribuciones activas
+  OK  - gráfico: se construye en modo comparación
+  OK  - modo comparación: nunca supera 4 distribuciones
+  OK  - modo comparación: requiere al menos 2 distribuciones
+
+-- 11. Restablecer análisis --
+  OK  - estado de exploración alterado antes de restablecer
+  OK  - restablecer: vuelve a la recomendación oficial
+  OK  - restablecer: NO recalcula (el View Model es el mismo objeto)
+
+-- 12. Comparación con la recomendación --
+  OK  - la distribución explorada trae sus observaciones ✔/✘ desde B5
+  OK  - la comparación dispone de nº de parámetros y criterios de información
+  OK  - la recomendada no muestra bloque de comparación consigo misma
+  OK  - la recomendación oficial NO cambia tras comparar ni explorar
+
+-- 13. Ausencia de warnings --
+  OK  - renderizado de gráficos sin warnings de resolución de fuentes
+
+B8 SMOKE TEST SUPERADO
+   [PASA/WARN] tools/distribution-fitting/tests/b8_smoke_test.R  (exit=0, warnings=2)
+
+==================================================================
+>> tools/distribution-fitting :: tests/import_csv_tests.R
+==================================================================
+Aviso:
+package ‘shiny’ was built under R version 4.4.3 
+
+Adjuntando el paquete: ‘bslib’
+
+The following object is masked from ‘package:utils’:
+
+    page
+
+Aviso:
+package ‘bslib’ was built under R version 4.4.3 
+== TESTS DE IMPORTACIÓN CSV (ADR-017 / ADR-018) ==
+
+-- 1. Con cabecera, coma, varias columnas --
+  OK  - conserva los nombres de la cabecera
+  OK  - lee todas las filas de datos
+  OK  - detecta ambas columnas como numéricas
+
+-- 2. Sin cabecera, una columna --
+  OK  - asigna el nombre Variable_1
+  OK  - NO pierde la primera observación (3 filas, no 2)
+  OK  - la primera observación conserva su valor
+  OK  - la columna es numérica
+
+-- 3. Sin cabecera, varias columnas, ';' --
+  OK  - asigna Variable_1 y Variable_2
+  OK  - separa correctamente por ';'
+  OK  - ambas columnas son numéricas
+
+-- 4. Con cabecera, ';' --
+  OK  - detecta la cabecera pese al separador ';'
+  OK  - lee las filas de datos
+
+-- 5. Tabulador --
+  OK  - detecta el tabulador como separador
+
+-- 6. Sin columnas numéricas --
+  OK  - el archivo se lee sin error
+  OK  - no se detecta ninguna columna numérica (la herramienta debe avisar)
+
+-- 7. Validación sin contrato de columnas --
+  OK  - un CSV sin 'loss_amount' es válido cuando no hay contrato
+  OK  - la validación estructural no depende de los nombres de columna
+  OK  - se mantienen las comprobaciones estructurales (dataset vacío)
+
+-- 8. Compatibilidad hacia atrás --
+  OK  - el CSV de ejemplo conserva exactamente sus nombres de columna
+  OK  - el CSV de ejemplo conserva sus 60 filas
+  OK  - las columnas numéricas del ejemplo se detectan como tales
+
+TESTS DE IMPORTACIÓN SUPERADOS
+   [PASA/WARN] tools/distribution-fitting/tests/import_csv_tests.R  (exit=0, warnings=2)
+
+==================================================================
+>> tools/kernel-density :: tests/smoke_test.R
+==================================================================
+Aviso:
+package ‘shiny’ was built under R version 4.4.3 
+
+Adjuntando el paquete: ‘bslib’
+
+The following object is masked from ‘package:utils’:
+
+    page
+
+Aviso:
+package ‘bslib’ was built under R version 4.4.3 
+== SMOKE TEST — kernel-density ==
+  OK  - 6. Dataset inválido: bmk_validate_data marca is_valid=FALSE con error
+  OK  -    contrato válido con loss_amount numérico
+  OK  - 1. Apertura con ejemplo: View Model con 7 bloques
+  OK  -    metadata por defecto (gaussian + silverman)
+  OK  -    4 cards y 2 niveles de VaR (95% + 99,5%)
+  OK  - 2. Cambio de kernel: recalcula con epanechnikov
+  OK  - 3. Cambio de bandwidth: recalcula con scott
+  OK  - 4. Bandwidth manual: h = 60 aplicado
+  OK  - 5. Exportaciones: downloads con diagnostics/risk/model_summary
+  OK  -    los tres downloads son data.frame exportables
+
+SMOKE TEST SUPERADO
+   [PASA/WARN] tools/kernel-density/tests/smoke_test.R  (exit=0, warnings=2)
+
+==================================================================
+>> tools/kernel-density :: tests/acceptance_example.R
+==================================================================
+== A) INVARIANTES FUERTES ==
+  OK  - View Model: 7 bloques
+  OK  - cards: 4 tarjetas
+  OK  - cards: cada una expone title/value/subtitle/icon/status
+  OK  - n = 500
+  OK  - n_unique = 500
+  OK  - outliers (Tukey) = 41
+  OK  - tabla de riesgo: 3 niveles
+  OK  - niveles: 95% / 99% / 99,5%
+  OK  - densidad: histograma con 500 datos
+  OK  - densidad: curva KDE con grid_n puntos
+  OK  - densidad: KDE no negativa
+  OK  - densidad: 3 líneas VaR KDE y 3 VaR empírico
+  OK  - densidad: VaR KDE creciente en el nivel
+  OK  - CDF: grid_n puntos
+  OK  - CDF: monótona no decreciente
+  OK  - CDF: acotada en [0,1]
+  OK  - CDF: marcas VaR KDE en y = nivel de confianza (F(VaR)=p por construcción)
+  OK  - CDF: VaR KDE dentro de un rango razonable del dominio
+  OK  - descargas: diagnostics + risk + model_summary
+  OK  - descarga riesgo: 3 filas
+  OK  - descarga resumen del modelo: 5 campos fijos + 2 filas por nivel de VaR
+  OK  - metadata: kernel / método / seed esperados
+== B) VALORES DE REFERENCIA (tolerancias) ==
+  OK  - h (silverman)  (100.4190 ~ 100.4200 +/- 0.5000)
+  OK  - asimetría  (3.6026 ~ 3.6000 +/- 0.0500)
+  OK  - curtosis  (21.1831 ~ 21.1800 +/- 0.2000)
+  OK  - coef. variación  (1.2158 ~ 1.2200 +/- 0.0200)
+  OK  - VaR KDE 95%  (2019.0200 ~ 2019.0000 +/- 1.0000)
+  OK  - VaR KDE 99%  (4200.3561 ~ 4200.4000 +/- 1.5000)
+  OK  - VaR KDE 99,5%  (4853.7225 ~ 4853.7000 +/- 1.5000)
+  OK  - VaR empírico 95%  (1964.7025 ~ 1964.7000 +/- 0.5000)
+  OK  - VaR empírico 99,5%  (4778.1564 ~ 4778.2000 +/- 0.5000)
+  OK  - densidad: ymax  (0.0016 ~ 0.0016 +/- 0.0001)
+
+ESCENARIO DE ACEPTACIÓN SUPERADO
+   [PASA] tools/kernel-density/tests/acceptance_example.R
+
+==================================================================
+>> tools/kernel-density :: tests/integration_view_model.R
+==================================================================
+== Integración motor -> View Model ==
+  OK  - kde_analyze devuelve los 7 bloques del contrato del motor
+  OK  - View Model tiene los 7 bloques por componente UI
+  OK  - cards: 4 metric cards
+  OK  - plots: density + cdf
+  OK  - tables: risk + model_summary + diagnostic
+  OK  - indicator: campos del bandwidth
+  OK  - insights: 5 bloques de texto
+  OK  - downloads: diagnostics + risk + model_summary
+  OK  - metadata: campos de reproducibilidad presentes
+  OK  - metadata: seed correcto
+  OK  - downloads$risk: una fila por nivel
+  OK  - downloads$diagnostics: statistic + value, no vacío
+  OK  - downloads$model_summary: 5 campos fijos + 2 filas por nivel
+  OK  - cards: valores formateados presentes
+
+TODAS LAS COMPROBACIONES DE INTEGRACIÓN OK
+   [PASA] tools/kernel-density/tests/integration_view_model.R
+
+==================================================================
+>> tools/distribution-fitting :: tests/hipotesis_muestras.R
+==================================================================
+Avisos:
+1: package ‘shiny’ was built under R version 4.4.3 
+2: package ‘bslib’ was built under R version 4.4.3 
+fichero                                variable             familia    top                  conf     deltaAIC     seg
+--------------------------------------------------------------------------------------------------------------------
+continua_bimodal.csv                   loss_amount          continuous exponential          baja       -72.54     0.1
+continua_exponencial.csv               loss_amount          continuous exponential          baja         1.88     0.0
+continua_gamma.csv                     loss_amount          continuous gamma                media        3.57     0.0
+continua_lognormal.csv                 loss_amount          continuous lognormal            media        6.67     0.0
+continua_pareto_cola_pesada.csv        loss_amount          continuous burr                 baja         1.43     0.0
+continua_weibull.csv                   loss_amount          continuous weibull              media        2.00     0.0
+discreta_binomial_negativa.csv         n_siniestros         discrete   negative_binomial    alta        46.18     0.0
+discreta_geometrica.csv                n_reclamaciones      discrete   negative_binomial    baja         0.84     0.0
+discreta_poisson.csv                   n_siniestros         discrete   poisson              media        2.00     0.0
+formato_bom_crlf.csv                   loss_amount          continuous lognormal            media        4.87     0.0
+formato_cabecera_pyc.csv               severidad            continuous lognormal            media        4.87     0.0
+formato_columnas_mixtas.csv            paid_loss            continuous lognormal            media        2.39     0.0
+formato_con_na.csv                     loss_amount          continuous loglogistic          baja        -0.32     0.0
+formato_nombres_raros.csv              Importe.Siniestro... continuous lognormal            media        4.87     0.0
+formato_sin_cabecera_1col.csv          Variable_1           continuous lognormal            media        4.69     0.0
+formato_sin_cabecera_pyc.csv           Variable_1           continuous lognormal            media        4.87     0.0
+formato_sin_numericas.csv              -                    SIN COLUMNAS NUMERICAS -> modal de error (esperado)
+formato_tabulador.csv                  importe              continuous lognormal            media        4.87     0.0
+limite_casi_constante.csv              valor                continuous lognormal            alta       686.26     0.0
+limite_con_ceros.csv                   paid_loss            continuous lognormal            media        7.36     0.0
+limite_con_negativos.csv               resultado            continuous loglogistic          baja        -1.30     0.0
+limite_enteros_grandes.csv             importe_entero       continuous lognormal            alta        10.42     0.0
+limite_grande_20k.csv                  loss_amount          continuous lognormal            alta       389.94     0.2
+limite_muestra_pequena.csv             loss_amount          continuous loglogistic          baja        -0.08     0.0
+
+HIPOTESIS: ningun fichero ha provocado errores del motor
+   [PASA/WARN] tools/distribution-fitting/tests/hipotesis_muestras.R  (exit=0, warnings=1)
+
+==================================================================
+RESUMEN
+  scripts ejecutados : 14
+  [PASA]             : 10
+  [PASA/WARN]        : 4
+  [FALLA]            : 0
+  [ERROR-VERIF]      : 0
+------------------------------------------------------------------
+CORRECTO CON WARNINGS — 0 fallos, pero 4 script(s) con warnings
+Log completo: /Users/karimbenmennana/Desktop/Actuarial Project/Actuarial Tools - LinkedIn/actuarial-tools-bmk/verificacion_R.log
+==================================================================

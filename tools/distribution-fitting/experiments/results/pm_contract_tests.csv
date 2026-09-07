@@ -1,0 +1,19 @@
+caso,k,n,estado,motivo
+p = 0,2,,REJECT,"percentil fuera del intervalo abierto (0,1)"
+p = 1,2,,REJECT,"percentil fuera del intervalo abierto (0,1)"
+p < 0,2,,REJECT,"percentil fuera del intervalo abierto (0,1)"
+p > 1,2,,REJECT,"percentil fuera del intervalo abierto (0,1)"
+NA/None,2,,REJECT,percentil ausente (NA)
+NaN,2,,REJECT,percentil no finito (NA/NaN/Inf)
+Inf,2,,REJECT,percentil no finito (NA/NaN/Inf)
+duplicados,2,,REJECT,percentiles duplicados: restriccion redundante
+vector vacio,2,,REJECT,conjunto de percentiles vacio
+"m<k (m=1,k=2)",2,,REJECT,m=1 < k=2: sistema estructuralmente insuficiente
+"m<k (m=2,k=3 Burr)",3,,REJECT,m=2 < k=3: sistema estructuralmente insuficiente
+m=k (k=2),2,,ACCEPT,configuracion valida
+preset 25/50/75 k=2,2,,ACCEPT,configuracion valida
+preset 25/50/75 k=3 Burr,3,,ACCEPT,configuracion valida
+m>k 10/25/50/75/90,2,,ACCEPT,configuracion valida
+muy proximos,2,,WARN,percentiles muy proximos (separacion minima 0.0050)
+extremos con n=100,2,100,WARN,percentil extremo con n=100: menos de 5 observaciones en la cola
+extremos con n=10000,2,10000,ACCEPT,configuracion valida
